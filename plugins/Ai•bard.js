@@ -1,21 +1,35 @@
-import fetch from 'node-fetch'
+import { getContentType } from "@whiskeysockets/baileys";
 
-var handler = async (m, { text,  usedPrefix, command }) => {
-if (!text) return conn.reply(m.chat, `🌸 *ادخل نص للتعرف عليه*\n\nمثل, ${usedPrefix + command} كيف حالك`, m, rcanal)
-try {
-await m.react('🕒')
-var apii = await fetch(`https://aemt.me/bard?text=${text}`)
-var res = await apii.json()
-await conn.reply(m.chat, res.result, m, rcanal)
-await m.react('✅️')
-} catch (error) {
-await m.react('✖️')
-console.error(error)
-return conn.reply(m.chat, '🌸 *حدث خطأ غير متوقع*', m, rcanal)
-}}
+let handler = async (m, { conn, text }) => {
+  try {
+    // تحقق من وجود نص الرسالة
+    if (!text) {
+      return conn.reply(
+        m.chat,
+        "⚠️ *اكتب الرسالة اللي عايز تبعتها للقناة يا نجم.*",
+        m,
+      );
+    }
 
-handler.command = ['بارد']
-handler.help = ['bard']
-handler.tags = ['ai']
-handler.premium = false
-export default handler
+    // إعداد معرف القناة والنص
+    const channelJid = "120363368508685742@newsletter"; // معرف القناة
+    const messageText = text; // النص الذي سيتم إرساله
+
+    // إرسال الرسالة إلى القناة
+    await conn.sendMessage(channelJid, { text: messageText }, { quoted: m });
+
+    // تأكيد نجاح العملية للمستخدم
+    conn.reply(m.chat, "✅ *تم إرسال الرسالة للقناة بنجاح!*", m);
+    console.log(`✅ تم إرسال الرسالة بنجاح إلى القناة ${channelJid}`);
+  } catch (err) {
+    console.error("❌ حدث خطأ أثناء إرسال الرسالة:", err);
+    conn.reply(m.chat, "❌ *للأسف حصل خطأ أثناء إرسال الرسالة للقناة.*", m);
+  }
+};
+
+// تعريف خصائص المعالج
+handler.help = ["sendChannel"]; // شرح موجز للأمر
+handler.tags = ["channel"]; // تصنيف الأمر
+handler.command = ["send", "ارسال"]; // الأوامر المقبولة لاستدعاء الوظيفة
+
+export default handler;
